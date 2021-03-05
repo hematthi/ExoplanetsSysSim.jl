@@ -894,6 +894,7 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
   np = num_planets(t)
   obs = Array{TransitPlanetObs}(undef,np)
   sigma = Array{TransitPlanetObs}(undef,np)
+  snr_sys = Array{Float64}(undef, np) #####
   ns = length(t.sys)
   sdp_sys = Array{ObservedSystemDetectionProbs}(undef,ns)
   i = 1
@@ -930,16 +931,18 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
 
         pdet[p] = calc_prob_detect_if_transit(t, snr, period, duration, sim_param, num_transit=ntr)
 
-	if pdet[p] > min_detect_prob_to_be_included
-           pvet = vetting_efficiency(t.sys[s].planet[p].radius, period)
-           pdet[p] *= pvet
-           duration = calc_transit_duration(t,s,p)
+        if pdet[p] > min_detect_prob_to_be_included
+            pvet = vetting_efficiency(t.sys[s].planet[p].radius, period)
+            pdet[p] *= pvet
+            duration = calc_transit_duration(t,s,p)
             obs[i], sigma[i] = transit_noise_model(t, s, p, depth, duration, snr, ntr)
-      	   i += 1
-	end
+            snr_sys[i] = snr #####
+            i += 1
+        end
     end
     resize!(obs,i-1)
     resize!(sigma,i-1)
+    resize!(snr_sys,i-1) #####
     sdp_sys[s] = ObservedSystemDetectionProbs(pdet)
   end
   # TODO SCI DETAIL: Combine sdp_sys to allow for target to have multiple planetary systems
@@ -951,7 +954,7 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
 
   has_no_sc = falses(3*num_quarters)
   star_obs = StarObs( t.sys[1].star.radius, t.sys[1].star.mass, t.sys[1].star.id )  # NOTE: This just copies star properties directly
-  return KeplerTargetObs(obs, sigma, sdp_target, has_no_sc, star_obs )
+  return KeplerTargetObs(obs, sigma, sdp_target, has_no_sc, star_obs ), snr_sys #####
 end
 
 

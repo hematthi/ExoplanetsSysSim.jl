@@ -111,9 +111,16 @@ function observe_kepler_targets(calc_target_obs::Function, input::KeplerPhysical
      output.target = Array{KeplerTargetObs}(undef,num_targets_sim_pass_one)
   end
   #output.target = Array{KeplerTargetObs}(undef,length(input.target) )  # Replaced to reduce memory allocation
-  map!(x::KeplerTarget->calc_target_obs(x,sim_param)::KeplerTargetObs, output.target, input.target)
+  #####map!(x::KeplerTarget->calc_target_obs(x,sim_param)::KeplerTargetObs, output.target, input.target)
+  output_snr = Array{Vector{Float64}}(undef, length(input.target)) #####
+  for (i,t) in enumerate(input.target) ##### entire for-loop
+    target_obs, snr_obs = calc_target_obs(t,sim_param)
+    output.target[i] = target_obs
+    output_snr[i] = snr_obs
+  end
   resize!(output.target,length(input.target))
-  return output
+  
+  return output, output_snr #####
 end
 
 # Test if this planetary system has at least one planet that transits (assuming a single observer)
