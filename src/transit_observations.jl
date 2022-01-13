@@ -895,6 +895,7 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
   obs = Array{TransitPlanetObs}(undef,np)
   sigma = Array{TransitPlanetObs}(undef,np)
   snr_sys = Array{Float64}(undef, np) #####
+  pdetvet_sys = Array{Float64}(undef, np) #####
   ns = length(t.sys)
   sdp_sys = Array{ObservedSystemDetectionProbs}(undef,ns)
   i = 1
@@ -937,12 +938,14 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
             duration = calc_transit_duration(t,s,p)
             obs[i], sigma[i] = transit_noise_model(t, s, p, depth, duration, snr, ntr)
             snr_sys[i] = snr #####
+            pdetvet_sys[i] = pdet[p] #####
             i += 1
         end
     end
     resize!(obs,i-1)
     resize!(sigma,i-1)
     resize!(snr_sys,i-1) #####
+    resize!(pdetvet_sys,i-1) #####
     sdp_sys[s] = ObservedSystemDetectionProbs(pdet)
   end
   # TODO SCI DETAIL: Combine sdp_sys to allow for target to have multiple planetary systems
@@ -954,7 +957,7 @@ function calc_target_obs_single_obs(t::KeplerTarget, sim_param::SimParam)
 
   has_no_sc = falses(3*num_quarters)
   star_obs = StarObs( t.sys[1].star.radius, t.sys[1].star.mass, t.sys[1].star.id )  # NOTE: This just copies star properties directly
-  return KeplerTargetObs(obs, sigma, sdp_target, has_no_sc, star_obs ), snr_sys #####
+  return KeplerTargetObs(obs, sigma, sdp_target, has_no_sc, star_obs ), snr_sys, pdetvet_sys #####
 end
 
 
